@@ -36,8 +36,8 @@
       justify-content: center;
       align-items: center;
       background:
-        radial-gradient(circle at top left, rgba(255, 215, 0, 0.18), transparent 28%),
-        linear-gradient(135deg, #0f1025 0%, #22163d 45%, #0f4c5c 100%);
+        radial-gradient(circle at top left, rgba(255, 192, 203, 0.28), transparent 30%),
+        linear-gradient(135deg, #1c1b3a 0%, #3b2f5c 45%, #5b728f 100%);
       font-family: "Segoe UI", "Malgun Gothic", sans-serif;
       color: #fffdf2;
     }
@@ -50,11 +50,11 @@
     .calculator {
       width: 100%;
       max-width: 320px;
-      background: linear-gradient(145deg, rgba(27, 21, 52, 0.95), rgba(16, 38, 58, 0.95));
-      border: 1px solid rgba(255, 215, 0, 0.25);
+      background: linear-gradient(145deg, rgba(37, 29, 64, 0.96), rgba(24, 45, 70, 0.96));
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 20px;
       padding: 20px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 0 20px rgba(255, 255, 255, 0.04);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.38), inset 0 0 24px rgba(255, 255, 255, 0.05);
     }
 
     /*
@@ -63,8 +63,8 @@
       text-align: right 로 숫자를 오른쪽 정렬해 일반 계산기 UX와 맞춥니다.
     */
     .display {
-      background: linear-gradient(135deg, rgba(12, 27, 48, 0.95), rgba(44, 82, 97, 0.9));
-      border: 1px solid rgba(255, 215, 0, 0.2);
+      background: linear-gradient(135deg, rgba(17, 35, 51, 0.96), rgba(76, 111, 132, 0.92));
+      border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 14px;
       padding: 16px 20px;
       margin-bottom: 16px;
@@ -74,16 +74,16 @@
       justify-content: flex-end;
       align-items: flex-end;
       word-break: break-all;
-      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.25);
     }
 
     /* 이전 피연산자 + 연산자를 작은 글씨로 표시 (예: "12 +") */
     .display-expression {
       font-size: 0.9rem;
-      color: #b8b8d3;
+      color: #cfd8e6;
       min-height: 1.2em;
       margin-bottom: 4px;
-      text-shadow: 0 0 6px rgba(255, 215, 0, 0.15);
+      text-shadow: 0 0 6px rgba(255, 192, 203, 0.18);
     }
 
     /* 현재 입력 중이거나 계산 결과를 표시하는 큰 숫자 영역 */
@@ -91,7 +91,7 @@
       font-size: 2.2rem;
       font-weight: 300;
       line-height: 1.2;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.16);
     }
 
     /* 오류(0으로 나누기 등)일 때 빨간색으로 강조 */
@@ -106,11 +106,11 @@
     */
     .history-panel {
       margin-bottom: 14px;
-      background: linear-gradient(135deg, rgba(28, 50, 80, 0.95), rgba(13, 35, 54, 0.95));
-      border: 1px solid rgba(255, 215, 0, 0.18);
+      background: linear-gradient(135deg, rgba(44, 63, 92, 0.95), rgba(26, 43, 61, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 12px;
       padding: 12px 14px;
-      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.04);
+      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.03);
     }
 
     .history-header {
@@ -125,7 +125,7 @@
     .history-clear {
       border: none;
       background: transparent;
-      color: #ffb347;
+      color: #f7b6c2;
       cursor: pointer;
       font-size: 0.8rem;
     }
@@ -169,19 +169,24 @@
       border: none + cursor: pointer 로 클릭 가능한 UI임을 명확히 합니다.
     */
     .btn {
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       font-size: 1.4rem;
       padding: 18px 0;
       cursor: pointer;
-      transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+      transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
       user-select: none;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+      position: relative;
+      overflow: hidden;
+      background: var(--btn-bg, linear-gradient(145deg, #5f5878, #433b5e));
+      color: #fffdf2;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
     }
 
-    /* hover: 마우스를 올렸을 때 살짝 밝게 */
+    /* hover: 마우스를 올렸을 때 더 밝고 선명하게 */
     .btn:hover {
-      filter: brightness(1.15);
+      filter: brightness(1.22) saturate(1.24);
     }
 
     /* active: 클릭 순간 살짝 눌린 느낌 */
@@ -189,22 +194,41 @@
       transform: scale(0.95);
     }
 
-    /* 숫자 버튼 — 어두운 회색 계열 */
-    .btn-number {
-      background: linear-gradient(145deg, #3b2b58, #2a1f44);
-      color: #fffdf2;
+    /* pressed: 버튼을 누른 순간 색을 반전시키고, 그림자를 더 세게 강조 */
+    .btn.is-pressed {
+      filter: saturate(1.4) brightness(1.24);
+      box-shadow: 0 0 22px var(--btn-glow, rgba(255, 214, 102, 0.4)), inset 0 0 12px rgba(255, 255, 255, 0.22);
+      transform: scale(0.96);
     }
 
-    /* 연산자 버튼(+ - × ÷ =) — 주황색으로 구분 */
-    .btn-operator {
-      background: linear-gradient(145deg, #ff7f50, #dd5a3d);
-      color: #ffffff;
+    .btn.is-pressed::after {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -20%;
+      width: 140%;
+      height: 180%;
+      background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.55) 45%, transparent 70%);
+      transform: rotate(18deg);
+      animation: sparkle 0.24s ease-out forwards;
+      pointer-events: none;
     }
 
-    /* 기능 버튼(C, 백스페이스, %) — 중간 톤 회색 */
+    @keyframes sparkle {
+      0% {
+        transform: translateX(-120%) rotate(18deg);
+        opacity: 0.7;
+      }
+      100% {
+        transform: translateX(120%) rotate(18deg);
+        opacity: 0;
+      }
+    }
+
+    /* 기본 버튼 색상은 JS에서 개별적으로 지정합니다. */
+    .btn-number,
+    .btn-operator,
     .btn-function {
-      background: linear-gradient(145deg, #5b4d7a, #44355f);
-      color: #fff8dc;
+      color: #fffdf2;
     }
 
     /*
@@ -304,6 +328,45 @@
     const buttonsContainer = document.querySelector(".buttons");
     const historyListEl = document.getElementById("historyList");
     const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    const buttons = Array.from(document.querySelectorAll(".btn"));
+
+    const buttonPalettes = {
+      number: [
+        ["linear-gradient(145deg, #ff4fd8 0%, #ff1483 100%)", "rgba(255, 79, 216, 0.65)"],
+        ["linear-gradient(145deg, #20f0ff 0%, #0b8cff 100%)", "rgba(32, 240, 255, 0.65)"],
+        ["linear-gradient(145deg, #b7ff3b 0%, #34d399 100%)", "rgba(183, 255, 59, 0.65)"],
+        ["linear-gradient(145deg, #ffd84d 0%, #ff9f1c 100%)", "rgba(255, 216, 77, 0.65)"],
+        ["linear-gradient(145deg, #ff7a59 0%, #ff4d6d 100%)", "rgba(255, 122, 89, 0.65)"],
+        ["linear-gradient(145deg, #a66cff 0%, #6e3bff 100%)", "rgba(166, 108, 255, 0.65)"],
+        ["linear-gradient(145deg, #5efce8 0%, #2b7fff 100%)", "rgba(94, 252, 232, 0.65)"],
+        ["linear-gradient(145deg, #ff7ce1 0%, #ff3b8f 100%)", "rgba(255, 124, 225, 0.65)"],
+        ["linear-gradient(145deg, #7ef9ff 0%, #00b4d8 100%)", "rgba(126, 249, 255, 0.65)"],
+        ["linear-gradient(145deg, #ffe066 0%, #ff8fb1 100%)", "rgba(255, 224, 102, 0.65)"],
+        ["linear-gradient(145deg, #8dff9b 0%, #2ec4b6 100%)", "rgba(141, 255, 155, 0.65)"],
+        ["linear-gradient(145deg, #ff8b8b 0%, #ff4d4d 100%)", "rgba(255, 139, 139, 0.65)"]
+      ],
+      operator: [
+        ["linear-gradient(145deg, #ff8b8b 0%, #ff4d6d 100%)", "rgba(255, 139, 139, 0.7)"],
+        ["linear-gradient(145deg, #ffb347 0%, #ff7f50 100%)", "rgba(255, 179, 71, 0.7)"],
+        ["linear-gradient(145deg, #ffd166 0%, #ff9f1c 100%)", "rgba(255, 209, 102, 0.7)"],
+        ["linear-gradient(145deg, #ff6f91 0%, #ff3d7a 100%)", "rgba(255, 111, 145, 0.7)"]
+      ],
+      function: [
+        ["linear-gradient(145deg, #9ce6ff 0%, #4c6ef5 100%)", "rgba(156, 230, 255, 0.7)"],
+        ["linear-gradient(145deg, #8dff9b 0%, #2ec4b6 100%)", "rgba(141, 255, 155, 0.7)"],
+        ["linear-gradient(145deg, #a0eaff 0%, #5b6cff 100%)", "rgba(160, 234, 255, 0.7)"],
+        ["linear-gradient(145deg, #c7ff5b 0%, #79c14b 100%)", "rgba(199, 255, 91, 0.7)"]
+      ]
+    };
+
+    Object.entries(buttonPalettes).forEach(([group, palette]) => {
+      const groupButtons = buttons.filter((button) => button.classList.contains(`btn-${group}`));
+      groupButtons.forEach((button, index) => {
+        const [gradient, glow] = palette[index % palette.length];
+        button.style.setProperty("--btn-bg", gradient);
+        button.style.setProperty("--btn-glow", glow);
+      });
+    });
 
     // ----- 계산기 상태 변수 -----
     /*
@@ -548,6 +611,9 @@
       }
 
       if (shouldResetDisplay) {
+        currentValue = "0";
+        shouldResetDisplay = false;
+        updateDisplay();
         return;
       }
 
@@ -613,11 +679,20 @@
       closest('.btn') 으로 실제 클릭된 버튼 요소를 찾고,
       data-action / data-value 로 동작을 분기합니다.
     */
+    function flashButton(button) {
+      button.classList.add("is-pressed");
+      window.setTimeout(() => {
+        button.classList.remove("is-pressed");
+      }, 140);
+    }
+
     function handleButtonClick(event) {
       const button = event.target.closest(".btn");
       if (!button) {
         return;
       }
+
+      flashButton(button);
 
       const action = button.dataset.action;
 
