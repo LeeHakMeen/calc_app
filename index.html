@@ -36,10 +36,45 @@
       justify-content: center;
       align-items: center;
       background:
-        radial-gradient(circle at top left, rgba(255, 192, 203, 0.28), transparent 30%),
-        linear-gradient(135deg, #1c1b3a 0%, #3b2f5c 45%, #5b728f 100%);
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.55), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(255, 214, 102, 0.28), transparent 26%),
+        linear-gradient(135deg, #ffeef8 0%, #e7f6ff 45%, #fff4c9 100%);
       font-family: "Segoe UI", "Malgun Gothic", sans-serif;
       color: #fffdf2;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "✨";
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      font-size: 2rem;
+      animation: float-bob 2.2s ease-in-out infinite;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "🐰";
+      position: absolute;
+      bottom: 14px;
+      left: 16px;
+      font-size: 4.2rem;
+      opacity: 0.9;
+      pointer-events: none;
+      animation: float-bob 2.8s ease-in-out infinite reverse;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.16));
+    }
+
+    @keyframes float-bob {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
     }
 
     /*
@@ -50,11 +85,23 @@
     .calculator {
       width: 100%;
       max-width: 320px;
-      background: linear-gradient(145deg, rgba(37, 29, 64, 0.96), rgba(24, 45, 70, 0.96));
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(243, 248, 255, 0.95));
+      border: 3px solid rgba(255, 143, 171, 0.85);
+      border-radius: 24px;
       padding: 20px;
-      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.38), inset 0 0 24px rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.4), 0 16px 42px rgba(94, 117, 181, 0.24), inset 0 0 24px rgba(255, 255, 255, 0.35);
+      position: relative;
+      z-index: 1;
+    }
+
+    .calculator::before {
+      content: "🌈";
+      position: absolute;
+      top: -14px;
+      right: -10px;
+      font-size: 1.5rem;
+      animation: float-bob 1.9s ease-in-out infinite;
+      pointer-events: none;
     }
 
     /*
@@ -174,7 +221,7 @@
       font-size: 1.4rem;
       padding: 18px 0;
       cursor: pointer;
-      transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      transition: background 0.35s ease, transform 0.1s ease, box-shadow 0.35s ease, filter 0.15s ease;
       user-select: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
       position: relative;
@@ -220,6 +267,29 @@
       }
       100% {
         transform: translateX(120%) rotate(18deg);
+        opacity: 0;
+      }
+    }
+
+    .particle {
+      position: fixed;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999;
+      box-shadow: 0 0 8px currentColor;
+      animation: particle-burst 0.7s ease-out forwards;
+      filter: blur(0.3px);
+    }
+
+    @keyframes particle-burst {
+      0% {
+        transform: translate(0, 0) scale(0.2);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) scale(0.9);
         opacity: 0;
       }
     }
@@ -390,6 +460,38 @@
     let operator = null;
     let shouldResetDisplay = false;
     let historyEntries = [];
+
+    let audioContext;
+    const noteFrequencies = [261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25];
+
+    function playClickSound(button) {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      const buttonIndex = Array.from(buttons).indexOf(button);
+      const frequency = noteFrequencies[buttonIndex % noteFrequencies.length];
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.01, audioContext.currentTime + 0.14);
+
+      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.018, audioContext.currentTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.24);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.13);
+    }
 
     /*
       ===== renderHistory() =====
@@ -686,6 +788,41 @@
       }, 140);
     }
 
+    function createParticleBurst(button) {
+      const rect = button.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const colors = ["#ffd166", "#ff6b6b", "#7bdff2", "#a78bfa", "#ffffff", "#8bffb3"];
+
+      for (let i = 0; i < 12; i += 1) {
+        const particle = document.createElement("span");
+        particle.className = "particle";
+        particle.style.left = `${centerX}px`;
+        particle.style.top = `${centerY}px`;
+        particle.style.color = colors[i % colors.length];
+        particle.style.setProperty("--dx", `${(Math.random() - 0.5) * 180}px`);
+        particle.style.setProperty("--dy", `${(Math.random() - 0.5) * 180}px`);
+        document.body.appendChild(particle);
+
+        window.setTimeout(() => {
+          particle.remove();
+        }, 700);
+      }
+    }
+
+    function recolorButtons() {
+      const groups = ["number", "operator", "function"];
+      groups.forEach((group) => {
+        const groupButtons = buttons.filter((button) => button.classList.contains(`btn-${group}`));
+        groupButtons.forEach((button) => {
+          const palette = buttonPalettes[group];
+          const [gradient, glow] = palette[Math.floor(Math.random() * palette.length)];
+          button.style.setProperty("--btn-bg", gradient);
+          button.style.setProperty("--btn-glow", glow);
+        });
+      });
+    }
+
     function handleButtonClick(event) {
       const button = event.target.closest(".btn");
       if (!button) {
@@ -693,6 +830,9 @@
       }
 
       flashButton(button);
+      createParticleBurst(button);
+      recolorButtons();
+      playClickSound(button);
 
       const action = button.dataset.action;
 
