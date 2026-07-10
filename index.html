@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <!--
+    문자 인코딩을 UTF-8로 지정합니다.
+    한글 주석·버튼 레이블·오류 메시지가 깨지지 않도록 합니다.
+  -->
+  <meta charset="UTF-8">
+  <!--
+    모바일 브라우저에서 페이지 너비를 기기 화면에 맞춥니다.
+    계산기 UI가 작은 화면에서도 확대 없이 자연스럽게 보이게 합니다.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>계산기</title>
+
+  <style>
+    /*
+      ===== 전역 초기화 =====
+      브라우저마다 다른 기본 여백·박스 크기 계산 방식을 통일합니다.
+      box-sizing: border-box 를 쓰면 padding·border 포함해 크기를 예측하기 쉽습니다.
+    */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /*
+      ===== 페이지 배경 =====
+      body 전체를 flex로 중앙 정렬해 계산기를 화면 한가운데 배치합니다.
+      min-height: 100vh 로 세로 공간이 남아도 항상 중앙에 위치합니다.
+    */
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background:
+        radial-gradient(circle at top left, rgba(255, 215, 0, 0.18), transparent 28%),
+        linear-gradient(135deg, #0f1025 0%, #22163d 45%, #0f4c5c 100%);
+      font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+      color: #fffdf2;
+    }
+
+    /*
+      ===== 계산기 본체 =====
+      max-width 로 데스크톱에서 너무 넓어지지 않게 하고,
+      width: 100% + padding 으로 모바일에서도 좌우 여백을 둡니다.
+    */
+    .calculator {
+      width: 100%;
+      max-width: 320px;
+      background: linear-gradient(145deg, rgba(27, 21, 52, 0.95), rgba(16, 38, 58, 0.95));
+      border: 1px solid rgba(255, 215, 0, 0.25);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 0 20px rgba(255, 255, 255, 0.04);
+    }
+
+    /*
+      ===== 디스플레이 영역 =====
+      계산 결과와 (선택적으로) 이전 식을 보여줍니다.
+      text-align: right 로 숫자를 오른쪽 정렬해 일반 계산기 UX와 맞춥니다.
+    */
+    .display {
+      background: linear-gradient(135deg, rgba(12, 27, 48, 0.95), rgba(44, 82, 97, 0.9));
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      word-break: break-all;
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* 이전 피연산자 + 연산자를 작은 글씨로 표시 (예: "12 +") */
+    .display-expression {
+      font-size: 0.9rem;
+      color: #b8b8d3;
+      min-height: 1.2em;
+      margin-bottom: 4px;
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.15);
+    }
+
+    /* 현재 입력 중이거나 계산 결과를 표시하는 큰 숫자 영역 */
+    .display-value {
+      font-size: 2.2rem;
+      font-weight: 300;
+      line-height: 1.2;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+    }
+
+    /* 오류(0으로 나누기 등)일 때 빨간색으로 강조 */
+    .display-value.error {
+      color: #ff6b6b;
+      font-size: 1.8rem;
+    }
+
+    /*
+      ===== 계산 기록 패널 =====
+      최근 계산 결과를 아래에 남겨 두어 사용자가 바로 확인할 수 있게 합니다.
+    */
+    .history-panel {
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, rgba(28, 50, 80, 0.95), rgba(13, 35, 54, 0.95));
+      border: 1px solid rgba(255, 215, 0, 0.18);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.04);
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #d6d6e8;
+    }
+
+    .history-clear {
+      border: none;
+      background: transparent;
+      color: #ffb347;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 110px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      font-size: 0.9rem;
+      color: #f2f2f2;
+      background-color: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+
+    .history-empty {
+      font-size: 0.85rem;
+      color: #a0a0b0;
+      padding: 4px 2px;
+    }
+
+    /*
+      ===== 버튼 그리드 =====
+      4열 × 5행 레이아웃. gap 으로 버튼 사이 간격을 일정하게 유지합니다.
+    */
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    /*
+      ===== 공통 버튼 스타일 =====
+      aspect-ratio 로 정사각형에 가깝게 유지하고,
+      border: none + cursor: pointer 로 클릭 가능한 UI임을 명확히 합니다.
+    */
+    .btn {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      font-size: 1.4rem;
+      padding: 18px 0;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+      user-select: none;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* hover: 마우스를 올렸을 때 살짝 밝게 */
+    .btn:hover {
+      filter: brightness(1.15);
+    }
+
+    /* active: 클릭 순간 살짝 눌린 느낌 */
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 숫자 버튼 — 어두운 회색 계열 */
+    .btn-number {
+      background: linear-gradient(145deg, #3b2b58, #2a1f44);
+      color: #fffdf2;
+    }
+
+    /* 연산자 버튼(+ - × ÷ =) — 주황색으로 구분 */
+    .btn-operator {
+      background: linear-gradient(145deg, #ff7f50, #dd5a3d);
+      color: #ffffff;
+    }
+
+    /* 기능 버튼(C, 백스페이스, %) — 중간 톤 회색 */
+    .btn-function {
+      background: linear-gradient(145deg, #5b4d7a, #44355f);
+      color: #fff8dc;
+    }
+
+    /*
+      0 버튼은 2칸을 차지합니다.
+      grid-column: span 2 로 Grid 셀 2개 너비를 사용합니다.
+    */
+    .btn-zero {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+<body>
+
+  <!--
+    ===== 계산기 전체 컨테이너 =====
+    aria-label 로 스크린 리더 사용자에게 '계산기' 영역임을 알립니다.
+  -->
+  <main class="calculator" aria-label="계산기">
+
+    <!--
+      디스플레이: expression(이전 식) + value(현재 값) 두 줄 구조
+      JS에서 updateDisplay()로 두 요소를 갱신합니다.
+    -->
+    <section class="display" aria-live="polite" aria-atomic="true">
+      <div class="display-expression" id="expression"></div>
+      <div class="display-value" id="display">0</div>
+    </section>
+
+    <!--
+      버튼 그리드
+      data-action 속성으로 JS가 버튼 종류를 구분합니다.
+      - number  : 숫자 입력
+      - operator: 사칙연산
+      - equals  : 등호(계산 실행)
+      - clear   : 전체 초기화
+      - backspace: 한 글자 삭제
+      - decimal : 소수점
+      - percent : 백분율(현재 값 / 100)
+    -->
+    <section class="history-panel" aria-label="계산 기록">
+      <div class="history-header">
+        <span>계산 기록</span>
+        <button class="history-clear" id="clearHistoryBtn" type="button">지우기</button>
+      </div>
+      <ul class="history-list" id="historyList">
+        <li class="history-empty">아직 기록이 없습니다.</li>
+      </ul>
+    </section>
+
+    <section class="buttons">
+
+      <button class="btn btn-function" data-action="clear">C</button>
+      <button class="btn btn-function" data-action="backspace">⌫</button>
+      <button class="btn btn-function" data-action="toggle-sign">±</button>
+      <button class="btn btn-operator" data-action="operator" data-value="÷">÷</button>
+
+      <button class="btn btn-number" data-action="number" data-value="7">7</button>
+      <button class="btn btn-number" data-action="number" data-value="8">8</button>
+      <button class="btn btn-number" data-action="number" data-value="9">9</button>
+      <button class="btn btn-operator" data-action="operator" data-value="×">×</button>
+
+      <button class="btn btn-number" data-action="number" data-value="4">4</button>
+      <button class="btn btn-number" data-action="number" data-value="5">5</button>
+      <button class="btn btn-number" data-action="number" data-value="6">6</button>
+      <button class="btn btn-operator" data-action="operator" data-value="-">−</button>
+
+      <button class="btn btn-number" data-action="number" data-value="1">1</button>
+      <button class="btn btn-number" data-action="number" data-value="2">2</button>
+      <button class="btn btn-number" data-action="number" data-value="3">3</button>
+      <button class="btn btn-operator" data-action="operator" data-value="+">+</button>
+
+      <button class="btn btn-number btn-zero" data-action="number" data-value="0">0</button>
+      <button class="btn btn-number" data-action="decimal">.</button>
+      <button class="btn btn-operator" data-action="equals">=</button>
+
+    </section>
+  </main>
+
+  <script>
+    /*
+      ============================================================
+      계산기 애플리케이션
+      ============================================================
+      프레임워크 없이 순수 JavaScript로 상태 기반 계산기를 구현합니다.
+
+      상태 전이 요약:
+        [숫자 입력] → currentValue 갱신
+        [연산자]    → previousValue·operator 저장, 다음 숫자 입력 대기
+        [=]         → calculate() 실행, 결과를 currentValue에 반영
+        [C]         → 모든 상태 초기화
+    */
+
+    // ----- DOM 요소 참조 -----
+    // getElementById는 id가 유일할 때 가장 단순하고 빠른 선택 방법입니다.
+    const displayEl = document.getElementById("display");
+    const expressionEl = document.getElementById("expression");
+    const buttonsContainer = document.querySelector(".buttons");
+    const historyListEl = document.getElementById("historyList");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+
+    // ----- 계산기 상태 변수 -----
+    /*
+      currentValue (문자열)
+        화면에 보이는 숫자입니다. 문자열로 두는 이유:
+        - 사용자가 "0." 처럼 입력 중인 상태를 그대로 표현할 수 있음
+        - parseFloat는 계산 직전에만 사용
+
+      previousValue (문자열)
+        첫 번째 피연산자. 연산자를 누른 뒤 두 번째 숫자 입력을 기다릴 때 보관합니다.
+
+      operator (문자열 | null)
+        선택된 연산자: '+', '-', '×', '÷' 중 하나 또는 null
+
+      shouldResetDisplay (불리언)
+        true이면 다음 숫자 입력 시 currentValue를 교체(새 숫자 시작).
+        = 또는 연산자 입력 직후에 true로 설정됩니다.
+    */
+    let currentValue = "0";
+    let previousValue = "";
+    let operator = null;
+    let shouldResetDisplay = false;
+    let historyEntries = [];
+
+    /*
+      ===== renderHistory() =====
+      최근 계산 기록을 화면에 표시합니다.
+      최신 항목이 위에 보이도록 unshift 로 배열을 관리합니다.
+    */
+    function renderHistory() {
+      if (historyEntries.length === 0) {
+        historyListEl.innerHTML = '<li class="history-empty">아직 기록이 없습니다.</li>';
+        return;
+      }
+
+      historyListEl.innerHTML = historyEntries
+        .map((entry) => `<li class="history-item">${entry}</li>`)
+        .join("");
+    }
+
+    /*
+      ===== appendHistoryEntry(expression, result) =====
+      계산이 완료된 경우 기록을 저장합니다.
+      최대 8개까지 보관해 화면을 깔끔하게 유지합니다.
+    */
+    function appendHistoryEntry(expression, result) {
+      historyEntries.unshift(`${expression} = ${result}`);
+      historyEntries = historyEntries.slice(0, 8);
+      renderHistory();
+    }
+
+    /*
+      ===== updateDisplay() =====
+      상태 변수를 읽어 DOM을 갱신합니다.
+      UI 갱신 로직을 한곳에 모아 두면 버그 추적과 수정이 쉽습니다.
+    */
+    function updateDisplay() {
+      displayEl.textContent = currentValue;
+
+      // expression 영역: 이전 값과 연산자가 있을 때만 "12 +" 형태로 표시
+      if (previousValue && operator) {
+        expressionEl.textContent = previousValue + " " + operator;
+      } else {
+        expressionEl.textContent = "";
+      }
+
+      // 오류 상태일 때 시각적 강조 클래스 토글
+      displayEl.classList.toggle("error", currentValue === "오류");
+    }
+
+    /*
+      ===== formatResult() =====
+      부동소수점 연산 오차(예: 0.1 + 0.2 = 0.30000000000000004)를 줄입니다.
+      Number.isFinite 로 NaN·Infinity 를 걸러내고,
+      소수 10자리까지 반올림한 뒤 불필요한 trailing zero를 제거합니다.
+    */
+    function formatResult(num) {
+      if (!Number.isFinite(num)) {
+        return "오류";
+      }
+      const rounded = Math.round(num * 1e10) / 1e10;
+      return String(rounded);
+    }
+
+    /*
+      ===== calculate() =====
+      previousValue, currentValue, operator 로 실제 사칙연산을 수행합니다.
+      UI 기호(×, ÷)와 JS 연산(*, /)을 switch에서 매핑합니다.
+    */
+    function calculate(a, b, op) {
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+
+      switch (op) {
+        case "+":
+          return formatResult(numA + numB);
+        case "-":
+          return formatResult(numA - numB);
+        case "×":
+          return formatResult(numA * numB);
+        case "÷":
+          // 0으로 나누기는 수학적으로 정의되지 않으므로 오류 처리
+          if (numB === 0) {
+            return "오류";
+          }
+          return formatResult(numA / numB);
+        default:
+          return b;
+      }
+    }
+
+    /*
+      ===== resetCalculator() =====
+      C 버튼: 모든 상태를 초기값으로 되돌립니다.
+    */
+    function resetCalculator() {
+      currentValue = "0";
+      previousValue = "";
+      operator = null;
+      shouldResetDisplay = false;
+      updateDisplay();
+    }
+
+    /*
+      ===== handleNumber(digit) =====
+      숫자 버튼(0~9) 입력 처리.
+
+      엣지 케이스:
+      - shouldResetDisplay === true → 새 계산 시작, 기존 화면 숫자 교체
+      - currentValue === "0" 이고 digit !== "0" → 선행 0 제거 (05 → 5)
+      - currentValue === "0" 이고 digit === "0" → 0 유지 (00 방지)
+      - "0." 은 handleDecimal()에서 처리
+    */
+    function handleNumber(digit) {
+      if (currentValue === "오류") {
+        resetCalculator();
+      }
+
+      if (shouldResetDisplay) {
+        currentValue = digit;
+        shouldResetDisplay = false;
+      } else if (currentValue === "0" && digit !== "0") {
+        currentValue = digit;
+      } else if (currentValue === "0" && digit === "0") {
+        // 0만 연속 입력 — 값 변경 없음
+        return;
+      } else {
+        currentValue += digit;
+      }
+
+      updateDisplay();
+    }
+
+    /*
+      ===== handleDecimal() =====
+      소수점 입력. 이미 '.' 이 포함되어 있으면 무시합니다.
+    */
+    function handleDecimal() {
+      if (currentValue === "오류") {
+        resetCalculator();
+        currentValue = "0.";
+        updateDisplay();
+        return;
+      }
+
+      if (shouldResetDisplay) {
+        currentValue = "0.";
+        shouldResetDisplay = false;
+        updateDisplay();
+        return;
+      }
+
+      if (!currentValue.includes(".")) {
+        currentValue += ".";
+        updateDisplay();
+      }
+    }
+
+    /*
+      ===== handleOperator(op) =====
+      연산자(+ - × ÷) 입력 처리.
+
+      연속 계산:
+        이미 operator가 설정되어 있고 shouldResetDisplay가 false면
+        (즉, 두 번째 숫자까지 입력한 상태) 먼저 중간 계산을 수행합니다.
+        예: 10 - 3 × 2 → 10 - 3 = 7 후 × 2 대기
+    */
+    function handleOperator(op) {
+      if (currentValue === "오류") {
+        return;
+      }
+
+      if (operator && !shouldResetDisplay) {
+        const expression = `${previousValue} ${operator} ${currentValue}`;
+        const result = calculate(previousValue, currentValue, operator);
+        if (result === "오류") {
+          currentValue = "오류";
+          previousValue = "";
+          operator = null;
+          updateDisplay();
+          return;
+        }
+        appendHistoryEntry(expression, result);
+        currentValue = result;
+        previousValue = result;
+      } else if (!operator || shouldResetDisplay) {
+        previousValue = currentValue;
+      }
+
+      operator = op;
+      shouldResetDisplay = true;
+      updateDisplay();
+    }
+
+    /*
+      ===== handleEquals() =====
+      = 버튼: 보류 중인 연산을 실행하고 operator를 해제합니다.
+    */
+    function handleEquals() {
+      if (!operator || currentValue === "오류") {
+        return;
+      }
+
+      const expression = `${previousValue} ${operator} ${currentValue}`;
+      const result = calculate(previousValue, currentValue, operator);
+      appendHistoryEntry(expression, result);
+      currentValue = result;
+      previousValue = "";
+      operator = null;
+      shouldResetDisplay = true;
+      updateDisplay();
+    }
+
+    /*
+      ===== handleBackspace() =====
+      ⌫ 버튼: 마지막 한 자리 삭제. 한 자리만 남으면 "0"으로 되돌립니다.
+    */
+    function handleBackspace() {
+      if (currentValue === "오류") {
+        resetCalculator();
+        return;
+      }
+
+      if (shouldResetDisplay) {
+        return;
+      }
+
+      if (currentValue.length <= 1) {
+        currentValue = "0";
+      } else {
+        currentValue = currentValue.slice(0, -1);
+      }
+
+      updateDisplay();
+    }
+
+    /*
+      ===== handlePercent() =====
+      % 버튼: 현재 값을 100으로 나눕니다 (예: 50 → 0.5).
+      간단한 백분율 변환용 기능입니다.
+    */
+    function handlePercent() {
+      if (currentValue === "오류") {
+        return;
+      }
+
+      const num = parseFloat(currentValue);
+      currentValue = formatResult(num / 100);
+      shouldResetDisplay = true;
+      updateDisplay();
+    }
+
+    /*
+      ===== handleToggleSign() =====
+      현재 입력값의 부호를 바꿉니다.
+      예: 25 → -25, -7 → 7
+    */
+    function handleToggleSign() {
+      if (currentValue === "오류" || currentValue === "0") {
+        return;
+      }
+
+      if (currentValue.startsWith("-")) {
+        currentValue = currentValue.slice(1);
+      } else {
+        currentValue = "-" + currentValue;
+      }
+
+      updateDisplay();
+    }
+
+    /*
+      ===== clearHistory() =====
+      기록 패널의 항목을 모두 지웁니다.
+    */
+    function clearHistory() {
+      historyEntries = [];
+      renderHistory();
+    }
+
+    /*
+      ===== handleButtonClick(event) =====
+      이벤트 위임: .buttons 컨테이너에 click 리스너 하나만 등록합니다.
+      개별 버튼마다 리스너를 달면 코드가 길어지고,
+      위임 방식은 버튼이 추가·변경되어도 핸들러 수정이 최소화됩니다.
+
+      closest('.btn') 으로 실제 클릭된 버튼 요소를 찾고,
+      data-action / data-value 로 동작을 분기합니다.
+    */
+    function handleButtonClick(event) {
+      const button = event.target.closest(".btn");
+      if (!button) {
+        return;
+      }
+
+      const action = button.dataset.action;
+
+      switch (action) {
+        case "number":
+          handleNumber(button.dataset.value);
+          break;
+        case "decimal":
+          handleDecimal();
+          break;
+        case "operator":
+          handleOperator(button.dataset.value);
+          break;
+        case "equals":
+          handleEquals();
+          break;
+        case "clear":
+          resetCalculator();
+          break;
+        case "backspace":
+          handleBackspace();
+          break;
+        case "percent":
+          handlePercent();
+          break;
+        case "toggle-sign":
+          handleToggleSign();
+          break;
+      }
+    }
+
+    /*
+      ===== handleKeyboard(event) =====
+      키보드 입력 지원: 숫자·연산자·Enter·Backspace·Escape 등을 매핑합니다.
+      input 필드가 아니므로 기본 동작을 막지 않아도 되지만,
+      계산기 사용 중 의도치 않은 페이지 스크롤 등을 줄이기 위해 preventDefault 를 선택적으로 사용합니다.
+    */
+    function handleKeyboard(event) {
+      const key = event.key;
+
+      if (key >= "0" && key <= "9") {
+        handleNumber(key);
+        return;
+      }
+
+      if (key === ".") {
+        handleDecimal();
+        return;
+      }
+
+      if (key === "+") {
+        handleOperator("+");
+        return;
+      }
+      if (key === "-") {
+        handleOperator("-");
+        return;
+      }
+      if (key === "*") {
+        handleOperator("×");
+        return;
+      }
+      if (key === "/") {
+        event.preventDefault();
+        handleOperator("÷");
+        return;
+      }
+
+      if (key === "Enter" || key === "=") {
+        handleEquals();
+        return;
+      }
+
+      if (key === "Backspace") {
+        handleBackspace();
+        return;
+      }
+
+      if (key === "Escape" || key === "c" || key === "C") {
+        resetCalculator();
+        return;
+      }
+
+      if (key === "%") {
+        handlePercent();
+      }
+    }
+
+    // ----- 이벤트 리스너 등록 -----
+    buttonsContainer.addEventListener("click", handleButtonClick);
+    clearHistoryBtn.addEventListener("click", clearHistory);
+    document.addEventListener("keydown", handleKeyboard);
+
+    // 초기 화면 렌더링
+    renderHistory();
+    updateDisplay();
+  </script>
+</body>
+</html>
